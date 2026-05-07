@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Moon Phases – مۆدێلی قۆناغەکانی مانگ</title>
+<link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --space:   #0b0826;
+    --cream:   #fef7d4;
+    --cream2:  #fffcee;
+    --red:     #e8403a;
+    --teal:    #00c5b2;
+    --yellow:  #ffd03e;
+    --orange:  #ff8c42;
+    --pink:    #ff6bae;
+    --green:   #2bb86a;
+    --purple:  #9b5de5;
+    --dark:    #130825;
+    --shadow:  5px 5px 0 #130825;
+    --outline: 3px solid #130825;
+    --radius:  16px;
+    --silver:  #3d2a5e;
+    --pale:    #130825;
+    --accent:  #00c5b2;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--space);
+    color: var(--dark);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ── STARFIELD ── */
+  .stars {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  }
+  .stars::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 25% 20%, rgba(80,40,180,.4) 0%, transparent 55%),
+      radial-gradient(ellipse at 75% 75%, rgba(0,130,110,.25) 0%, transparent 45%),
+      radial-gradient(ellipse at 60% 5%,  rgba(180,80,40,.15) 0%, transparent 35%);
+  }
+  .stars::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(1.5px 1.5px at 8%  12%, #fff 0%, transparent 100%),
+      radial-gradient(1px   1px   at 19% 55%, #fff 0%, transparent 100%),
+      radial-gradient(2px   2px   at 32% 7%,  #fff 0%, transparent 100%),
+      radial-gradient(1px   1px   at 47% 80%, #fff 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 58% 25%, #fff 0%, transparent 100%),
+      radial-gradient(1px   1px   at 68% 62%, #fff 0%, transparent 100%),
+      radial-gradient(2px   2px   at 78% 14%, #fff 0%, transparent 100%),
+      radial-gradient(1px   1px   at 88% 45%, #fff 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 94% 82%, #fff 0%, transparent 100%),
+      radial-gradient(1px   1px   at 4%  70%, #fff 0%, transparent 100%),
+      radial-gradient(1px   1px   at 14% 38%, #fff 0%, transparent 100%),
+      radial-gradient(2px   2px   at 25% 90%, #fff 0%, transparent 100%),
+      radial-gradient(1px   1px   at 38% 48%, #fff 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 52% 3%,  #fff 0%, transparent 100%),
+      radial-gradient(1px   1px   at 63% 73%, #fff 0%, transparent 100%),
+      radial-gradient(1px   1px   at 72% 35%, #fff 0%, transparent 100%),
+      radial-gradient(2px   2px   at 83% 58%, #fff 0%, transparent 100%),
+      radial-gradient(1px   1px   at 91% 20%, #fff 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 97% 65%, #fff 0%, transparent 100%),
+      radial-gradient(1px   1px   at 11% 95%, #fff 0%, transparent 100%);
+  }
+
+  /* ── FLOATING DECORATIONS ── */
+  .deco { position: fixed; pointer-events: none; z-index: 0; }
+  .deco-rocket  { top: 8%;     right: 2.5%; width: 72px;  animation: floatA 4s ease-in-out infinite; }
+  .deco-planet  { bottom: 12%; left: 1.5%;  width: 105px; animation: floatB 7s ease-in-out infinite; }
+  .deco-ufo     { top: 44%;    left: 1%;    width: 68px;  animation: floatA 5.5s ease-in-out infinite 1.2s; }
+  .deco-comet   { top: 28%;    right: 5%;   width: 60px;  animation: floatB 6s ease-in-out infinite 2s; }
+  .deco-star-a  { top: 6%;     left: 8%;    width: 28px;  animation: twinkle 2s ease-in-out infinite; }
+  .deco-star-b  { top: 18%;    right: 12%;  width: 22px;  animation: twinkle 3s ease-in-out infinite .6s; }
+  .deco-star-c  { top: 62%;    right: 3%;   width: 26px;  animation: twinkle 2.5s ease-in-out infinite 1s; }
+  .deco-star-d  { bottom: 28%; left: 7%;    width: 20px;  animation: twinkle 2.2s ease-in-out infinite .4s; }
+  .deco-star-e  { bottom: 8%;  right: 9%;   width: 16px;  animation: twinkle 3.5s ease-in-out infinite 1.5s; }
+
+  /* Hide large decorations on small screens to prevent visual clutter */
+  @media (max-width: 600px) {
+    .deco-rocket, .deco-planet, .deco-ufo, .deco-comet { display: none; }
+    .deco-star-a, .deco-star-b, .deco-star-c, .deco-star-d, .deco-star-e { width: 16px; }
+  }
+
+  @keyframes floatA {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50%       { transform: translateY(-14px) rotate(5deg); }
+  }
+  @keyframes floatB {
+    0%, 100% { transform: translateY(0) rotate(-4deg); }
+    50%       { transform: translateY(-20px) rotate(4deg); }
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 1;  transform: scale(1); }
+    50%       { opacity: .3; transform: scale(.6); }
+  }
+  @keyframes bounceIn {
+    0%   { opacity: 0; transform: scale(.5) translateY(-40px); }
+    65%  { transform: scale(1.06) translateY(6px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(32px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes spinSlow {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  /* ── LAYOUT ── */
+  .page {
+    position: relative; z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 44px 24px 64px;
+  }
+  @media (max-width: 480px) {
+    .page { padding: 28px 14px 48px; }
+  }
+
+  /* ── HEADER ── */
+  .header {
+    text-align: center;
+    margin-bottom: 40px;
+    animation: bounceIn .9s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  .moon-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 96px; height: 96px;
+    background: var(--yellow);
+    border: var(--outline);
+    box-shadow: var(--shadow);
+    border-radius: 50%;
+    font-size: 50px;
+    margin-bottom: 14px;
+    animation: spinSlow 25s linear infinite;
+  }
+  @media (max-width: 480px) {
+    .moon-icon { width: 78px; height: 78px; font-size: 40px; }
+    .header { margin-bottom: 28px; }
+  }
+  .title-en {
+    font-family: 'Boogaloo', cursive;
+    font-size: clamp(30px, 9vw, 60px);
+    color: var(--yellow);
+    text-shadow: 4px 4px 0 var(--dark);
+    line-height: 1.05; direction: ltr; letter-spacing: .02em;
+  }
+  .title-ku {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(14px, 3.8vw, 23px); font-weight: 700;
+    color: rgba(255,208,62,.75);
+    margin-top: 7px; direction: rtl;
+  }
+  .header .meta {
+    margin-top: 18px;
+    display: flex; justify-content: center; flex-wrap: wrap; gap: 8px;
+    direction: ltr;
+  }
+  .badge {
+    background: var(--teal);
+    border: var(--outline);
+    box-shadow: 3px 3px 0 var(--dark);
+    border-radius: 40px; padding: 5px 14px;
+    font-family: 'Boogaloo', cursive; font-size: 13px; color: var(--dark);
+    direction: ltr;
+    transition: transform .15s, box-shadow .15s;
+    text-align: center;
+  }
+  @media (hover: hover) {
+    .badge:hover { transform: translate(-2px,-2px); box-shadow: 5px 5px 0 var(--dark); }
+  }
+  .badge .ku { font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 700; }
+  @media (max-width: 480px) {
+    .badge { font-size: 12px; padding: 4px 12px; }
+    .badge .ku { font-size: 10.5px; }
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--cream);
+    border: var(--outline);
+    box-shadow: var(--shadow);
+    border-radius: var(--radius);
+    margin-bottom: 22px;
+    overflow: hidden;
+    animation: slideUp .65s cubic-bezier(.34,1.4,.64,1) both;
+    transition: transform .2s, box-shadow .2s;
+  }
+  @media (hover: hover) {
+    .card:hover { transform: translate(-2px,-2px); box-shadow: 7px 7px 0 var(--dark); }
+  }
+  .card:nth-child(1) { animation-delay: .08s; }
+  .card:nth-child(2) { animation-delay: .18s; }
+  .card:nth-child(3) { animation-delay: .28s; }
+  .card:nth-child(4) { animation-delay: .38s; }
+  .card:nth-child(5) { animation-delay: .48s; }
+  .card-body { padding: 20px 22px 24px; }
+  @media (max-width: 480px) {
+    .card-body { padding: 16px 15px 18px; }
+    .card { margin-bottom: 16px; }
+  }
+
+  /* Colored header band */
+  .card-title {
+    padding: 12px 18px;
+    display: flex; align-items: center; gap: 12px;
+    border-bottom: var(--outline);
+  }
+  .card-title.gold  { background: var(--yellow); }
+  .card-title.blue  { background: var(--teal);   }
+  .card-title.green { background: var(--green);  }
+  .card-title.pink  { background: var(--pink);   }
+  .card-title .icon { font-size: 24px; flex-shrink: 0; }
+  .card-title .titles { display: flex; flex-direction: column; gap: 1px; }
+  .card-title .en-t {
+    font-family: 'Boogaloo', cursive; font-size: clamp(17px, 4vw, 21px); line-height: 1.2; color: var(--dark);
+  }
+  .card-title .ku-t {
+    font-family: 'Nunito', sans-serif; font-size: clamp(12px, 2.8vw, 13.5px); font-weight: 700;
+    color: var(--dark); opacity: .72; direction: rtl;
+  }
+
+  /* ── BILINGUAL BLOCK ── */
+  .bilingual-block {
+    display: grid; grid-template-columns: 1fr 2px 1fr; gap: 0 20px; align-items: start;
+  }
+  .bilingual-block .divline {
+    width: 2px;
+    background: repeating-linear-gradient(
+      180deg, var(--dark) 0px, var(--dark) 5px, transparent 5px, transparent 10px);
+    opacity: .2; align-self: stretch;
+  }
+  .lang-en { direction: ltr; font-size: clamp(13.5px, 2.8vw, 15px); line-height: 1.78; color: #3d2a5e; }
+  .lang-ku { direction: rtl; font-size: clamp(13.5px, 2.8vw, 15px); line-height: 1.88; color: #3d2a5e; font-weight: 700; }
+  .lang-en strong {
+    color: var(--dark); font-family: 'Boogaloo', cursive; font-size: clamp(14.5px, 2.9vw, 16px); font-weight: 400;
+  }
+  .lang-ku strong { color: var(--dark); }
+
+  @media (max-width: 540px) {
+    .bilingual-block { grid-template-columns: 1fr; }
+    .bilingual-block .divline { height: 2px; width: 100%; margin: 12px 0; }
+  }
+
+  /* ── PHASES GRID ── */
+  .phases-grid {
+    display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; direction: ltr;
+  }
+  @media (max-width: 600px) { .phases-grid { grid-template-columns: repeat(4, 1fr); gap: 10px 8px; } }
+  .phase-item { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  .phase-item svg {
+    width: 100%; max-width: 56px; height: auto;
+    filter: drop-shadow(2px 2px 0 rgba(19,8,37,.35));
+  }
+  .phase-label {
+    font-family: 'Boogaloo', cursive; font-size: clamp(10px, 1.8vw, 11px); text-align: center;
+    color: var(--dark); letter-spacing: .02em; line-height: 1.25; direction: ltr;
+  }
+  @media (max-width: 600px) {
+    .phase-label { font-size: 11.5px; }
+  }
+  .phase-num {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--yellow); border: 2px solid var(--dark);
+    font-family: 'Boogaloo', cursive; font-size: 11px; color: var(--dark);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 2px;
+    background: repeating-linear-gradient(
+      90deg, var(--dark) 0px, var(--dark) 6px, transparent 6px, transparent 13px);
+    margin: 16px 0; opacity: .18;
+  }
+  .phases-note {
+    font-size: clamp(11px, 2.5vw, 12.5px); text-align: center; direction: rtl;
+    color: #4a3a70; font-weight: 700; opacity: .8;
+  }
+
+  /* ── REQUIREMENTS LIST ── */
+  .req-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+  .req-item {
+    display: grid; grid-template-columns: 36px 1fr 2px 1fr; gap: 0 12px; align-items: start;
+  }
+  @media (max-width: 540px) {
+    .req-item { grid-template-columns: 34px 1fr; }
+    .req-item .divline { display: none; }
+    .req-item .lang-ku { display: block; }
+  }
+  .req-bullet {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: var(--yellow); border: 2px solid var(--dark);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; align-self: start; flex-shrink: 0;
+  }
+  .req-item .lang-en,
+  .req-item .lang-ku { font-size: clamp(13px, 2.6vw, 14px); line-height: 1.65; }
+
+  /* ── FACTS GRID ── */
+  .facts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; direction: ltr; }
+  @media (max-width: 480px) { .facts-grid { grid-template-columns: 1fr; gap: 10px; } }
+  .fact-card {
+    background: var(--cream2); border: 2px solid var(--dark); box-shadow: 3px 3px 0 var(--dark);
+    border-radius: 10px; padding: 13px 14px;
+    display: flex; gap: 10px; align-items: flex-start; flex-direction: column;
+    transition: transform .15s, box-shadow .15s;
+  }
+  @media (hover: hover) {
+    .fact-card:hover { transform: translate(-2px,-2px); box-shadow: 5px 5px 0 var(--dark); }
+  }
+  .fact-top { display: flex; gap: 10px; align-items: flex-start; width: 100%; }
+  .fact-num {
+    flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+    background: var(--green); border: 2px solid var(--dark);
+    color: #fff; font-family: 'Boogaloo', cursive; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .fact-en { font-size: 13.5px; line-height: 1.5; color: var(--dark); direction: ltr; }
+  .fact-en b { color: #0f6e35; }
+  .fact-ku {
+    font-size: 12.5px; line-height: 1.6; color: #4a3a70;
+    direction: rtl; text-align: right; width: 100%;
+    padding-top: 7px; border-top: 2px dashed rgba(19,8,37,.18); font-weight: 700;
+  }
+  .fact-ku strong { color: #0f6e35 !important; }
+
+  /* ── RUBRIC ── */
+  .rubric-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .rubric { width: 100%; min-width: 300px; border-collapse: separate; border-spacing: 0 8px; direction: ltr; }
+  .rubric tr td {
+    padding: 11px 14px; font-size: clamp(13px, 2.6vw, 14px); line-height: 1.6;
+    background: var(--cream2);
+    border-top: 2px solid var(--dark); border-bottom: 2px solid var(--dark);
+  }
+  .rubric tr td:first-child {
+    border-left: 2px solid var(--dark); border-radius: 10px 0 0 10px;
+    text-align: center; width: 78px;
+  }
+  .rubric tr td:last-child {
+    border-right: 2px solid var(--dark); border-radius: 0 10px 10px 0; color: #3d2a5e;
+  }
+  .rubric tr td:last-child strong { color: var(--dark) !important; }
+  .rubric tr td:last-child em     { color: #8060b0 !important; }
+  .rubric .ku-row td {
+    background: rgba(255,247,214,.65) !important; border-color: rgba(19,8,37,.1) !important;
+    border-top: none !important; font-size: clamp(12px, 2.4vw, 13px); color: #4a3a70 !important;
+    direction: rtl; text-align: right; padding: 4px 14px 10px; font-weight: 700;
+  }
+  .rubric .ku-row td:first-child {
+    border-left: none !important; border-right: none !important;
+    border-radius: 0; background: transparent !important;
+  }
+  .pts {
+    display: inline-flex; align-items: center; justify-content: center; gap: 2px;
+    font-family: 'Boogaloo', cursive; font-size: 26px;
+  }
+  .pts sub { font-size: 11px; font-family: 'Nunito', sans-serif; font-weight: 700; margin-top: 8px; }
+  .pts.gold  { color: #a06800; }
+  .pts.blue  { color: #007870; }
+  .pts.pink  { color: #ae2870; }
+  .pts.green { color: #0f6e35; }
+  .total-row td {
+    background: var(--yellow) !important; border-color: var(--dark) !important;
+    color: var(--dark) !important; font-family: 'Boogaloo', cursive; font-size: 17px;
+    box-shadow: 3px 3px 0 var(--dark);
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center; margin-top: 16px;
+    font-family: 'Boogaloo', cursive; font-size: clamp(12px, 2.5vw, 14px); letter-spacing: .04em;
+    color: rgba(255,247,210,.45);
+    animation: slideUp .9s ease both; direction: rtl;
+    line-height: 1.7;
+  }
+</style>
+</head>
+<body>
+
+<div class="stars"></div>
+
+<!-- ROCKET -->
+<svg class="deco deco-rocket" viewBox="0 0 72 115" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M36 5 C36 5 55 28 55 65 L17 65 C17 28 36 5 36 5Z" fill="#e8403a" stroke="#130825" stroke-width="2.5" stroke-linejoin="round"/>
+  <rect x="22" y="65" width="28" height="28" rx="3" fill="#ffd03e" stroke="#130825" stroke-width="2.5"/>
+  <circle cx="36" cy="44" r="9" fill="#b3f0ec" stroke="#130825" stroke-width="2"/>
+  <circle cx="36" cy="44" r="5" fill="#00c5b2"/>
+  <path d="M17 68 L4 86 L22 78Z" fill="#ff8c42" stroke="#130825" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M55 68 L68 86 L50 78Z" fill="#ff8c42" stroke="#130825" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M28 93 Q36 112 44 93" fill="#e8403a" stroke="#130825" stroke-width="2"/>
+  <circle cx="28" cy="22" r="4" fill="rgba(255,255,255,.45)"/>
+  <circle cx="43" cy="32" r="2.5" fill="rgba(255,255,255,.3)"/>
+</svg>
+
+<!-- SATURN -->
+<svg class="deco deco-planet" viewBox="0 0 115 85" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="57" cy="50" rx="62" ry="9" fill="none" stroke="#ff8c42" stroke-width="3"/>
+  <circle cx="57" cy="44" r="30" fill="#9b5de5" stroke="#130825" stroke-width="2.5"/>
+  <path d="M38 30 Q57 25 76 35" stroke="rgba(255,255,255,.15)" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="48" cy="35" r="5.5" fill="rgba(255,255,255,.2)"/>
+  <circle cx="63" cy="31" r="3" fill="rgba(255,255,255,.15)"/>
+  <ellipse cx="57" cy="50" rx="44" ry="6" fill="none" stroke="#ffd03e" stroke-width="2" stroke-dasharray="5 3" opacity=".7"/>
+</svg>
+
+<!-- UFO -->
+<svg class="deco deco-ufo" viewBox="0 0 72 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="36" cy="36" rx="32" ry="11" fill="#00c5b2" stroke="#130825" stroke-width="2.5"/>
+  <path d="M18 36 Q36 8 54 36Z" fill="#ffd03e" stroke="#130825" stroke-width="2.5" stroke-linejoin="round"/>
+  <ellipse cx="36" cy="21" rx="11" ry="9" fill="#b3f0ec" stroke="#130825" stroke-width="2"/>
+  <circle cx="20" cy="37" r="3" fill="#e8403a" stroke="#130825" stroke-width="1.5"/>
+  <circle cx="36" cy="39" r="3" fill="#e8403a" stroke="#130825" stroke-width="1.5"/>
+  <circle cx="52" cy="37" r="3" fill="#e8403a" stroke="#130825" stroke-width="1.5"/>
+  <line x1="26" y1="47" x2="21" y2="58" stroke="#ffd03e" stroke-width="1.5" stroke-dasharray="3 2" opacity=".7"/>
+  <line x1="36" y1="47" x2="36" y2="60" stroke="#ffd03e" stroke-width="1.5" stroke-dasharray="3 2" opacity=".7"/>
+  <line x1="46" y1="47" x2="51" y2="58" stroke="#ffd03e" stroke-width="1.5" stroke-dasharray="3 2" opacity=".7"/>
+</svg>
+
+<!-- COMET -->
+<svg class="deco deco-comet" viewBox="0 0 68 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="54" cy="16" r="11" fill="#ffd03e" stroke="#130825" stroke-width="2"/>
+  <circle cx="51" cy="12" r="3.5" fill="rgba(255,255,255,.4)"/>
+  <path d="M44 13 Q22 8 3 3"  stroke="rgba(255,208,62,.65)" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M44 16 Q20 16 2 16" stroke="rgba(255,208,62,.45)" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M44 19 Q24 24 5 29" stroke="rgba(255,208,62,.3)"  stroke-width="2"   stroke-linecap="round"/>
+</svg>
+
+<!-- CARTOON STARS -->
+<svg class="deco deco-star-a" viewBox="0 0 30 30" fill="none"><polygon points="15,1 18.5,10.5 29,10.5 20.5,17 24,27.5 15,21.5 6,27.5 9.5,17 1,10.5 11.5,10.5" fill="#ffd03e" stroke="#130825" stroke-width="1.5" stroke-linejoin="round"/></svg>
+<svg class="deco deco-star-b" viewBox="0 0 30 30" fill="none"><polygon points="15,1 18.5,10.5 29,10.5 20.5,17 24,27.5 15,21.5 6,27.5 9.5,17 1,10.5 11.5,10.5" fill="#ff6bae" stroke="#130825" stroke-width="1.5" stroke-linejoin="round"/></svg>
+<svg class="deco deco-star-c" viewBox="0 0 30 30" fill="none"><polygon points="15,1 18.5,10.5 29,10.5 20.5,17 24,27.5 15,21.5 6,27.5 9.5,17 1,10.5 11.5,10.5" fill="#00c5b2" stroke="#130825" stroke-width="1.5" stroke-linejoin="round"/></svg>
+<svg class="deco deco-star-d" viewBox="0 0 30 30" fill="none"><polygon points="15,1 18.5,10.5 29,10.5 20.5,17 24,27.5 15,21.5 6,27.5 9.5,17 1,10.5 11.5,10.5" fill="#2bb86a" stroke="#130825" stroke-width="1.5" stroke-linejoin="round"/></svg>
+<svg class="deco deco-star-e" viewBox="0 0 30 30" fill="none"><polygon points="15,1 18.5,10.5 29,10.5 20.5,17 24,27.5 15,21.5 6,27.5 9.5,17 1,10.5 11.5,10.5" fill="#9b5de5" stroke="#130825" stroke-width="1.5" stroke-linejoin="round"/></svg>
+
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="moon-icon">🌙</div>
+    <div class="title-en">Moon Phases Model</div>
+    <div class="title-ku">مۆدێلی قۆناغەکانی مانگ</div>
+    <div class="meta">
+      <span class="badge">🔬 Science Project &nbsp;·&nbsp; <span class="ku">پڕۆژەی زانستی</span></span>
+      <span class="badge">📚 Grade 3 ESL &nbsp;·&nbsp; <span class="ku">پۆلی ٣ ESL</span></span>
+      <span class="badge">🏫 Bright Future International Community &nbsp;·&nbsp; <span class="ku">کۆمەڵگەی نێودەوڵەتی ئایندەی گەش</span></span>
+    </div>
+  </div>
+
+  <!-- THE TASK -->
+  <div class="card">
+    <div class="card-title gold">
+      <span class="icon">🚀</span>
+      <div class="titles">
+        <span class="en-t">The Task</span>
+        <span class="ku-t">ڕێنماییەکان</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="bilingual-block">
+        <p class="lang-en">Please <strong>create a model</strong> showing how the Moon changes shape. You will bring this to school to <strong>present to the class</strong>.</p>
+        <div class="divline"></div>
+        <p class="lang-ku">مۆدێلێک دروست بکە کە قۆناخەکانی مانگ نیشان بدات. دواتر مۆدێلەکە <strong>لە قوتابخانە پێشکەش دەکەین</strong>.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOON PHASES VISUAL -->
+  <div class="card">
+    <div class="card-title blue">
+      <span class="icon">🌕</span>
+      <div class="titles">
+        <span class="en-t">The 8 Phases of the Moon</span>
+        <span class="ku-t">٨ قۆناغەکانی مانگ</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="phases-grid">
+
+        <div class="phase-item">
+          <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="28" cy="28" r="24" fill="#2c2c2c" stroke="#130825" stroke-width="2"/>
+          </svg>
+          <span class="phase-num">1</span>
+          <span class="phase-label">New Moon</span>
+        </div>
+
+        <div class="phase-item">
+          <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="28" cy="28" r="24" fill="#2c2c2c" stroke="#130825" stroke-width="2"/>
+            <path d="M28 4 A24 24 0 0 1 28 52 A14 24 0 0 0 28 4Z" fill="#e8dfc8"/>
+          </svg>
+          <span class="phase-num">2</span>
+          <span class="phase-label">Waxing Crescent</span>
+        </div>
+
+        <div class="phase-item">
+          <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="28" cy="28" r="24" fill="#2c2c2c" stroke="#130825" stroke-width="2"/>
+            <path d="M28 4 A24 24 0 0 1 28 52 L28 4Z" fill="#e8dfc8"/>
+          </svg>
+          <span class="phase-num">3</span>
+          <span class="phase-label">First Quarter</span>
+        </div>
+
+        <div class="phase-item">
+          <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="28" cy="28" r="24" fill="#e8dfc8" stroke="#130825" stroke-width="2"/>
+            <path d="M28 4 A24 24 0 0 0 28 52 A10 24 0 0 1 28 4Z" fill="#2c2c2c"/>
+          </svg>
+          <span class="phase-num">4</span>
+          <span class="phase-label">Waxing Gibbous</span>
+        </div>
+
+        <div class="phase-item">
+          <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="28" cy="28" r="24" fill="#e8dfc8" stroke="#130825" stroke-width="2"/>
+            <circle cx="20" cy="22" r="3" fill="rgba(0,0,0,.1)"/>
+            <circle cx="34" cy="18" r="2" fill="rgba(0,0,0,.08)"/>
+            <circle cx="32" cy="34" r="2.5" fill="rgba(0,0,0,.08)"/>
+          </svg>
+          <span class="phase-num">5</span>
+          <span class="phase-label">Full Moon</span>
+        </div>
+
+        <div class="phase-item">
+          <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="28" cy="28" r="24" fill="#e8dfc8" stroke="#130825" stroke-width="2"/>
+            <path d="M28 4 A24 24 0 0 1 28 52 A10 24 0 0 0 28 4Z" fill="#2c2c2c"/>
+          </svg>
+          <span class="phase-num">6</span>
+          <span class="phase-label">Waning Gibbous</span>
+        </div>
+
+        <div class="phase-item">
+          <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="28" cy="28" r="24" fill="#2c2c2c" stroke="#130825" stroke-width="2"/>
+            <path d="M28 4 A24 24 0 0 0 28 52 L28 4Z" fill="#e8dfc8"/>
+          </svg>
+          <span class="phase-num">7</span>
+          <span class="phase-label">Last Quarter</span>
+        </div>
+
+        <div class="phase-item">
+          <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="28" cy="28" r="24" fill="#2c2c2c" stroke="#130825" stroke-width="2"/>
+            <path d="M28 4 A24 24 0 0 0 28 52 A14 24 0 0 1 28 4Z" fill="#e8dfc8"/>
+          </svg>
+          <span class="phase-num">8</span>
+          <span class="phase-label">Waning Crescent</span>
+        </div>
+
+      </div>
+      <div class="divider"></div>
+      <p class="phases-note">مۆدێلەکەت هەموو ئەو ٨ قۆناغانەی سەرەوە نیشان بدات و ناوەکانیان دیاری بکە ↑</p>
+    </div>
+  </div>
+
+  <!-- PROJECT REQUIREMENTS -->
+  <div class="card">
+    <div class="card-title blue">
+      <span class="icon">📋</span>
+      <div class="titles">
+        <span class="en-t">Project Requirements</span>
+        <span class="ku-t">پێداویستییەکانی پڕۆژەکە</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <ul class="req-list">
+        <li>
+          <div class="req-item">
+            <span class="req-bullet">🌕</span>
+            <p class="lang-en"><strong>A Labelled Model —</strong> Show and name the <strong>8 phases of the Moon</strong> (see the diagram above for reference).</p>
+            <div class="divline"></div>
+            <p class="lang-ku"><strong>مۆدێلێکی ناونراو —</strong> ٨ قۆناغەکەی مانگ نیشان بدە و ناویان بنوسە (سەیری وێنەکەی سەرەوە بکە وەک سەرچاوە).</p>
+          </div>
+        </li>
+        <li>
+          <div class="req-item">
+            <span class="req-bullet">✏️</span>
+            <p class="lang-en"><strong>3 Science Facts —</strong> Choose <strong>3 facts</strong> from the list below and write them on your project.</p>
+            <div class="divline"></div>
+            <p class="lang-ku"><strong>٣ زانیاری زانستی —</strong> ٣ زانیاری لە لیستی خوارەوە هەڵبژێرە و لەسەر پڕۆژەکەت بیانوسە.</p>
+          </div>
+        </li>
+        <li>
+          <div class="req-item">
+            <span class="req-bullet">🎤</span>
+            <p class="lang-en"><strong>1-Minute Presentation —</strong> Explain why the Moon <strong>appears to change shape</strong> (mention the orbit or reflection of light).</p>
+            <div class="divline"></div>
+            <p class="lang-ku"><strong>پێشکەشکردنێکی ١ خولەکی —</strong> ڕوونی بکەرەوە بۆچی وا دەردەکەوێت شێوەی مانگ بگۆڕێت (ئاماژە بە خولگە یان ڕەنگدانەوەی ڕووناکی بکە).</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SCIENCE FACTS -->
+  <div class="card">
+    <div class="card-title green">
+      <span class="icon">🔭</span>
+      <div class="titles">
+        <span class="en-t">Science Facts — Choose Any 3</span>
+        <span class="ku-t">زانیارییە زانستییەکان — دەتوانیت ٣ دانە لەمانە هەڵبژێریت</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="facts-grid">
+
+        <div class="fact-card">
+          <div class="fact-top">
+            <span class="fact-num">1</span>
+            <p class="fact-en">The Moon is the shape of a <b>sphere</b>.</p>
+          </div>
+          <p class="fact-ku">مانگ شێوەی <strong>گۆیە</strong>.</p>
+        </div>
+
+        <div class="fact-card">
+          <div class="fact-top">
+            <span class="fact-num">2</span>
+            <p class="fact-en">The Moon travels around the Earth in an <b>orbit</b>.</p>
+          </div>
+          <p class="fact-ku">مانگ لە دەوری زەویدا لە <strong>خولگەیەکدا</strong> دەگەڕێت.</p>
+        </div>
+
+        <div class="fact-card">
+          <div class="fact-top">
+            <span class="fact-num">3</span>
+            <p class="fact-en">The Moon <b>reflects light</b> from the Sun; it does not make its own light.</p>
+          </div>
+          <p class="fact-ku">مانگ <strong>ڕووناکی خۆر</strong> دەگەڕێنێتەوە؛ ڕووناکی خۆی نییە.</p>
+        </div>
+
+        <div class="fact-card">
+          <div class="fact-top">
+            <span class="fact-num">4</span>
+            <p class="fact-en">The Moon has different shapes called <b>phases</b>.</p>
+          </div>
+          <p class="fact-ku">مانگ شێوەی جیاوازی هەیە کە پێیان دەگوترێت <strong>قۆناغ</strong>.</p>
+        </div>
+
+        <div class="fact-card">
+          <div class="fact-top">
+            <span class="fact-num">5</span>
+            <p class="fact-en">When the Moon is getting larger, it is <b>waxing</b>.</p>
+          </div>
+          <p class="fact-ku">کاتێک مانگ <strong>گەورەتر</strong> دەبێت، <strong>waxing</strong>ە (زیاد دەبێت).</p>
+        </div>
+
+        <div class="fact-card">
+          <div class="fact-top">
+            <span class="fact-num">6</span>
+            <p class="fact-en">When the Moon is getting smaller, it is <b>waning</b>.</p>
+          </div>
+          <p class="fact-ku">کاتێک مانگ <strong>بچووکتر</strong> دەبێت، <strong>waning</strong>ە (کەم دەبێت).</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- RUBRIC -->
+  <div class="card">
+    <div class="card-title pink">
+      <span class="icon">⭐</span>
+      <div class="titles">
+        <span class="en-t">Marking Rubric — Total: 10 Points</span>
+        <span class="ku-t">خشتەی نمرەدان — کۆی گشتی: ١٠ نمرە</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="rubric-wrap"><table class="rubric">
+        <tr>
+          <td><span class="pts gold">3 <sub>pts</sub></span></td>
+          <td>Model is <strong>complete</strong> and all <strong>8 phases are labelled</strong> correctly.</td>
+        </tr>
+        <tr class="ku-row">
+          <td></td>
+          <td>مۆدێلەکە تەواوە و هەموو ٨ قۆناغەکە بە دروستی ناونراون.</td>
+        </tr>
+        <tr>
+          <td><span class="pts green">3 <sub>pts</sub></span></td>
+          <td><strong>3 science facts</strong> are written and correct <em>(1 point per fact)</em>.</td>
+        </tr>
+        <tr class="ku-row">
+          <td></td>
+          <td>٣ زانیاری زانستی نوسراون و ڕاستن (١ نمرە بۆ هەر زانیارییەک).</td>
+        </tr>
+        <tr>
+          <td><span class="pts blue">2 <sub>pts</sub></span></td>
+          <td>Student explains <strong>Moon movement or phases</strong> clearly during the talk.</td>
+        </tr>
+        <tr class="ku-row">
+          <td></td>
+          <td>قوتابی بە ڕوونی باسی جوڵەی مانگ یان قۆناغەکان دەکات لە کاتی پێشکەشکردنەکەدا.</td>
+        </tr>
+        <tr>
+          <td><span class="pts pink">2 <sub>pts</sub></span></td>
+          <td><strong>Neatness, color, and effort</strong>.</td>
+        </tr>
+        <tr class="ku-row">
+          <td></td>
+          <td>شێوازی پرۆجێکتەکە.</td>
+        </tr>
+        <tr class="total-row">
+          <td><span class="pts gold" style="font-size:28px">10</span></td>
+          <td>Total Points &nbsp;🌟 &nbsp;·&nbsp; کۆی نمرەکان</td>
+        </tr>
+      </table></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    کۆمەڵگەی نێودەوڵەتی ئایندەی گەش &nbsp;·&nbsp; Bright Future International Community &nbsp;·&nbsp; پۆلی ٣ ESL &nbsp;·&nbsp; پڕۆژەی زانستی 🌙
+  </div>
+
+</div>
+</body>
+</html>
